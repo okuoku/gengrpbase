@@ -25,9 +25,9 @@ submodule(angle
 submodule(angle
     third_party/libdrm/src
     https://chromium.googlesource.com/chromiumos/third_party/libdrm.git)
-#submodule(angle
-#    third_party/jsoncpp
-#    https://chromium.googlesource.com/chromium/src/third_party/jsoncpp)
+submodule(angle
+    third_party/jsoncpp
+    https://chromium.googlesource.com/chromium/src/third_party/jsoncpp)
 #submodule(angle ## RECURSIVE??
 #    third_party/jsoncpp/source
 #    https://github.com/open-source-parsers/jsoncpp)
@@ -60,6 +60,10 @@ submodule(angle
 submodule(angle
     third_party/zlib
     https://chromium.googlesource.com/chromium/src/third_party/zlib)
+
+submodule(angle
+    third_party/rust
+    https://chromium.googlesource.com/chromium/src/third_party/rust)
 
 set(REPO angle)
 set(bare ${CMAKE_CURRENT_LIST_DIR}/${REPO}.git)
@@ -155,6 +159,32 @@ foreach(e IN LISTS keep_paths)
     endif()
 endforeach()
 
+# ANGLE: Add jsoncpp/source
+set(ANGLE 1)
+if(ANGLE)
+    set(pth "third_party/jsoncpp_source")
+    set(url "https://github.com/open-source-parsers/jsoncpp")
+    set(hash dc45da884eb49636e53329d4776a6be9d80a0b22)
+    execute_process(COMMAND
+        git config set
+        -f ${gitmodules} "submodule.${pth}.url" 
+        "${url}"
+        RESULT_VARIABLE rr
+    )
+    if(rr)
+        message(FATAL_ERROR "Failed to update section submodule (JSONCPP)")
+    endif()
+    execute_process(COMMAND
+        git config set
+        -f ${gitmodules} "submodule.${pth}.path" 
+        "${pth}"
+        RESULT_VARIABLE rr
+    )
+    if(rr)
+        message(FATAL_ERROR "Failed to update section submodule (JSONCPP)")
+    endif()
+endif()
+
 # Create index
 set(ENV{GIT_INDEX_FILE} ${index})
 set(ENV{GIT_DIR} ${bare})
@@ -183,6 +213,18 @@ execute_process(COMMAND
     RESULT_VARIABLE rr)
 if(rr)
     message(FATAL_ERROR "Failed to inject .gitmodules")
+endif()
+
+if(ANGLE)
+    set(pth "third_party/jsoncpp_source")
+    set(hash dc45da884eb49636e53329d4776a6be9d80a0b22)
+    execute_process(COMMAND
+        git update-index --add
+        --cacheinfo 160000,${hash},${pth}
+        RESULT_VARIABLE rr)
+    if(rr)
+        message(FATAL_ERROR "Failed to inject jsoncpp submodule")
+    endif()
 endif()
 
 execute_process(COMMAND
